@@ -107,7 +107,7 @@ tasks.register("createReleaseJar", ShadowJar) {
 
 tasks.register("createSourcesJar", ShadowJar) {
     group = "cosmic_coder_pack"
-    archiveFileName = "Cosmic Reach-${baseCrVersion}.jar"
+    archiveFileName = "Cosmic Reach-${baseCrVersion}-Source.jar"
 
     from sourceSets.main.allSource
 }
