@@ -10,3 +10,4 @@ For this you need Java 17+ and Gradle.
 - To setup your work enviornment just run `setupWorkspace` in the tasks.
 - To run your work start the task `runCosmicReach` and debug until it works.
 - To compile this for other people run `createReleaseJar` and as a dev build (No Deps) run `createDevJar`
+- To create a source jar launch `createSourcesJar`.

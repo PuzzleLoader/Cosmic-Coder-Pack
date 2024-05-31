@@ -79,8 +79,10 @@ tasks.register("runCosmicReach", JavaExec) {
 
 tasks.register("createDevJar", Jar) {
     group = "cosmic_coder_pack"
-
     archiveFileName = "DEV-Cosmic Reach-${baseCrVersion}.jar"
+
+    dependsOn "compileJava"
+    from sourceSets.main.output
 
     manifest {
         attributes(
@@ -91,12 +93,21 @@ tasks.register("createDevJar", Jar) {
 
 tasks.register("createReleaseJar", ShadowJar) {
     group = "cosmic_coder_pack"
-
     archiveFileName = "Cosmic Reach-${baseCrVersion}.jar"
+
+    dependsOn "compileJava"
+    from sourceSets.main.runtimeClasspath
 
     manifest {
         attributes(
                 "Main-Class": "finalforeach.cosmicreach.lwjgl3.Lwjgl3Launcher"
         )
     }
+}
+
+tasks.register("createSourcesJar", ShadowJar) {
+    group = "cosmic_coder_pack"
+    archiveFileName = "Cosmic Reach-${baseCrVersion}.jar"
+
+    from sourceSets.main.allSource
 }
