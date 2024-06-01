@@ -1,5 +1,14 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipException
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+
 plugins {
     id "java"
     id "application"
@@ -62,10 +71,91 @@ tasks.register("downloadCosmicCodeGen", Download) {
     dest("$projectDir/build/tmp/CosmicSRCUtil${type == OSType.Windows ? ".exe": ""}")
 }
 
-tasks.register("downloadBasePatches", Download) {
+static void recursiveDelete(File file) {
+    if (!file.isDirectory()) file.delete()
+    else {
+        for (File innerFile : file.listFiles()) {
+            recursiveDelete(innerFile)
+        }
+    }
+}
+
+tasks.register("generatePatches", Exec) {
+    group = "cosmic_coder_pack"
+
+    dependsOn("downloadCosmicCodeGen", "createSourcesJar")
+    if (!new File("$projectDir/modifiedsources").exists()) new File("$projectDir/modifiedsources").mkdir()
+    createSourcesJar.archiveFile.get().getAsFile()
+            .renameTo(new File("$projectDir/modifiedsources/Cosmic Reach-${baseCrVersion}-Source.jar"))
+
+    recursiveDelete(new File("$projectDir/patches"))
+
+    OSType type = getOperatingSystemType()
+
+    if (type == OSType.Linux) {
+        exec {
+            workingDir "$projectDir"
+            commandLine("chmod +x $projectDir/build/tmp/CosmicSRCUtil")
+        }
+    }
+
+    workingDir "$projectDir"
+    commandLine "$projectDir/build/tmp/CosmicSRCUtil${type == OSType.Windows ? ".exe": ""}", "-c", baseCrVersion
+}
+
+tasks.register("applyPatches", Exec) {
+    group = "cosmic_coder_pack"
+
+    dependsOn("downloadCosmicCodeGen")
+
+    OSType type = getOperatingSystemType()
+
+    if (type == OSType.Linux) {
+        exec {
+            workingDir "$projectDir"
+            commandLine("chmod +x $projectDir/build/tmp/CosmicSRCUtil")
+        }
+    }
+
+    workingDir "$projectDir"
+    commandLine "$projectDir/build/tmp/CosmicSRCUtil${type == OSType.Windows ? ".exe": ""}", "-p"
+}
+
+tasks.register("getBasePatches") {
+    group = "cosmic_coder_pack"
+
+    dependsOn("extractPatches")
+}
+
+tasks.register("extractPatches") {
     group = "dont-touch--cosmic_coder_pack"
 
-    //TODO: FINISH
+    dependsOn("downloadBasePatchesZip")
+
+    doLast {
+        ZipFile zipFile = new ZipFile("$projectDir/build/tmp/${baseCrVersion}_base_patches.zip")
+        String parent;
+        for (ZipEntry entry : zipFile.entries()) {
+            parent = entry.getName().split("/")[0] + "/"
+            if (entry.getName().contains("patches")) {
+                if (entry.getName().endsWith("/"))
+                    new File("$projectDir/${entry.getName().replaceAll(parent, '')}").mkdirs()
+                else
+                    new FileOutputStream(new File("$projectDir/${entry.getName().replaceAll(parent, '')}")).write(zipFile.getInputStream(entry).readAllBytes())
+            }
+        }
+        zipFile.close()
+        new File("$projectDir/build/tmp/${baseCrVersion}_base_patches.zip").delete()
+    }
+}
+
+tasks.register("downloadBasePatchesZip", Download) {
+    group = "dont-touch--cosmic_coder_pack"
+
+    src("https://github.com/PuzzleLoader/Cosmic-Patches/zipball/${baseCrVersion}/zipball")
+    acceptAnyCertificate(true)
+    new File("$projectDir/build/tmp").mkdirs()
+    dest("$projectDir/build/tmp/${baseCrVersion}_base_patches.zip")
 }
 
 tasks.register("runCosmicCodeGen", Exec) {
