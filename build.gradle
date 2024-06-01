@@ -45,25 +45,51 @@ tasks.register("setupWorkspace") {
 tasks.register("downloadCosmicCodeGen", Download) {
     group = "dont-touch--cosmic_coder_pack"
 
-    src("https://github.com/PuzzleLoader/CosmicSourceGenerator/releases/download/${cosmicCodeGenVersion}/CosmicSourceGenerator.exe")
+    OSType type = getOperatingSystemType()
+
+    if (type == OSType.MacOS || type == OSType.Other) {
+        System.out.println("NUH UH")
+        System.exit(6969)
+    }
+
+    String url = "https://github.com/PuzzleLoader/CosmicSourceUtils/releases/download/${cosmicCodeGenVersion}/CosmicSourceGenerator.exe"
+    if (cosmicCodeGenVersion != "1.0.0") {
+        url = "https://github.com/PuzzleLoader/CosmicSourceUtils/releases/download/${cosmicCodeGenVersion}/${type == OSType.Windows ? "WINDOWS" : "LINUX"}_CosmicSRCUtil${type == OSType.Windows ? ".exe": ""}"
+    }
+    src(url)
     acceptAnyCertificate(true)
     new File("$projectDir/build/tmp").mkdirs()
-    dest("$projectDir/build/tmp/cosmic-code-gen.exe")
+    dest("$projectDir/build/tmp/CosmicSRCUtil${type == OSType.Windows ? ".exe": ""}")
+}
+
+tasks.register("downloadBasePatches", Download) {
+    group = "dont-touch--cosmic_coder_pack"
+
+    //TODO: FINISH
 }
 
 tasks.register("runCosmicCodeGen", Exec) {
     group = "dont-touch--cosmic_coder_pack"
     dependsOn("downloadCosmicCodeGen")
 
+    OSType type = getOperatingSystemType()
+
+    if (type == OSType.Linux) {
+        exec {
+            workingDir "$projectDir"
+            commandLine("chmod +x $projectDir/build/tmp/CosmicSRCUtil")
+        }
+    }
+
     workingDir "$projectDir"
-    commandLine "$projectDir/build/tmp/cosmic-code-gen.exe", baseCrVersion
+    commandLine "$projectDir/build/tmp/CosmicSRCUtil${type == OSType.Windows ? ".exe": ""}", "-d", baseCrVersion
 }
 
 tasks.register("cleanUpAfter") {
     group = "dont-touch--cosmic_coder_pack"
 
     dependsOn("runCosmicCodeGen")
-    new File("$projectDir/build/tmp/cosmic-code-gen.exe").delete()
+    new File("$projectDir/build/tmp/CosmicSRCUtil${getOperatingSystemType() == OSType.Windows ? ".exe": ""}").delete()
 }
 
 application {
@@ -110,4 +136,24 @@ tasks.register("createSourcesJar", ShadowJar) {
     archiveFileName = "Cosmic Reach-${baseCrVersion}-Source.jar"
 
     from sourceSets.main.allSource
+}
+
+public enum OSType {
+    Windows, MacOS, Linux, Other
+};
+public static OSType getOperatingSystemType() {
+    OSType detectedOS;
+    if (detectedOS == null) {
+        String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+        if ((OS.indexOf("mac") >= 0) || (OS.indexOf("darwin") >= 0)) {
+            detectedOS = OSType.MacOS;
+        } else if (OS.indexOf("win") >= 0) {
+            detectedOS = OSType.Windows;
+        } else if (OS.indexOf("nux") >= 0) {
+            detectedOS = OSType.Linux;
+        } else {
+            detectedOS = OSType.Other;
+        }
+    }
+    return detectedOS;
 }
