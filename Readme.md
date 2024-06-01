@@ -2,7 +2,10 @@
 
 This is a project that allows you to generate and run Cosmic Reach's source code from one jar from the [Cosmic Archive](https://github.com/CRModders/CosmicArchive)
 
-For this you need Java 17+ and Gradle.
+Requirements:
+- [Golang](https://go.dev)
+- [Java (at least 17)](https://www.java.com/en/download/) *if the tool does not work your path env is messed up*
+- [Git](https://git-scm.com/downloads)
 
 **All the gradle functions you will need will be in the task folder of `cosmic_coder_pack`**
 
