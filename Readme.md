@@ -3,7 +3,6 @@
 This is a project that allows you to generate and run Cosmic Reach's source code from one jar from the [Cosmic Archive](https://github.com/CRModders/CosmicArchive)
 
 Requirements:
-- [Golang](https://go.dev)
 - [Java (at least 17)](https://www.java.com/en/download/) *if the tool does not work your path env is messed up*
 - [Git](https://git-scm.com/downloads)
 
