@@ -12,6 +12,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -23,6 +24,8 @@ dependencies {
 
     implementation "games.rednblack.miniaudio:miniaudio:$miniaudioVersion"
     implementation "games.rednblack.miniaudio:miniaudio:$miniaudioVersion:natives-desktop"
+    implementation "com.github.Hangman:TuningFork:$tuningFork"
+
 }
 
 jar {
